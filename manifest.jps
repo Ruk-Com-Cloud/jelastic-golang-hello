@@ -71,8 +71,6 @@ onInstall:
   - restartNodes:
       nodeGroup: cp
 
-  - cmd[cp]: jem ssl install
-
 actions:
   deployFromGit:
     script: |
