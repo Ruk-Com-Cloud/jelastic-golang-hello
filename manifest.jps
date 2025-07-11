@@ -1,0 +1,87 @@
+jpsType: install
+jpsVersion: 1.7.2
+id: golang-hello-world
+name: Go Hello World with Fiber
+version: 1.0.0
+description: A simple Go web application built with Fiber framework for Jelastic cloud deployment
+logo: https://golang.org/doc/gopher/pkg.png
+homepage: https://github.com/Ruk-Com-Cloud/jelastic-golang-hello
+
+globals:
+  REPO_URL: https://github.com/Ruk-Com-Cloud/jelastic-golang-hello
+
+settings:
+  fields:
+    - type: string
+      name: gitUrl
+      caption: Git Repository URL
+      default: ${globals.REPO_URL}
+      required: true
+      tooltip: URL of the Git repository containing your Go application
+
+    - type: string
+      name: gitBranch
+      caption: Git Branch
+      default: main
+      required: true
+      tooltip: Git branch to deploy
+
+    - type: string
+      name: testMessage
+      caption: Custom Test Message
+      default: Deployed with Jelastic JPS!
+      required: false
+      tooltip: Optional custom message to append to API responses
+
+nodes:
+  - nodeType: golang
+    engine: 1.24.4
+    count: 1
+    cloudlets: 16
+    nodeGroup: cp
+    displayName: Go Application Server
+    env:
+      TEST_MSG: ${settings.testMessage}
+
+onInstall:
+  - deploy:
+      archive: ${settings.gitUrl}
+      name: jelastic-golang-hello
+      context: ROOT
+
+  - restartNodes:
+      nodeGroup: cp
+
+actions:
+  deployFromGit:
+    deploy:
+      archive: ${this.gitUrl}
+      name: jelastic-golang-hello
+      context: ROOT
+
+success:
+  text: |
+    **Go Hello World Application Successfully Deployed!**
+
+    **Application Details:**
+    - **Application URL:** [${env.protocol}://${env.domain}/](${env.protocol}://${env.domain}/)
+    - **Test with Query:** [${env.protocol}://${env.domain}/?message=test](${env.protocol}://${env.domain}/?message=test)
+    - **Environment:** ${env.shortdomain}
+
+    **Environment Variables:**
+    - `PORT`: Automatically configured by Jelastic
+    - `TEST_MSG`: ${settings.testMessage}
+
+    **API Endpoints:**
+    - `GET /` - Returns JSON response with custom message
+    - Supports query parameter `message` for additional text
+
+    **Next Steps:**
+    1. Test your application using the URLs above
+    2. Check application logs in Jelastic dashboard
+    3. Configure SSL if needed
+    4. Set up custom domain (optional)
+
+    **Repository:** ${settings.gitUrl}
+    **Branch:** ${settings.gitBranch}
+  email: false
