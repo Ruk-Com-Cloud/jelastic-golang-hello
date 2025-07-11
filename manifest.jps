@@ -4,7 +4,7 @@ id: golang-hello-world
 name: Go Hello World with Fiber
 version: 1.0.0
 description: A simple Go web application built with Fiber framework for Jelastic cloud deployment
-logo: https://golang.org/doc/gopher/pkg.png
+logo: https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_Blue.png
 homepage: https://github.com/Ruk-Com-Cloud/jelastic-golang-hello
 
 globals:
@@ -45,19 +45,19 @@ nodes:
 
 onInstall:
   - deploy:
-      archive: ${settings.gitUrl}
+      archive: ${settings.gitUrl}/archive/refs/heads/${settings.gitBranch}.zip
       name: jelastic-golang-hello
       context: ROOT
 
   - restartNodes:
       nodeGroup: cp
-  
+
   - cmd[cp]: jem ssl install
 
 actions:
   deployFromGit:
     deploy:
-      archive: ${this.gitUrl}
+      archive: ${this.gitUrl}/archive/refs/heads/${this.gitBranch}.zip
       name: jelastic-golang-hello
       context: ROOT
 
