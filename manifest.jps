@@ -44,27 +44,32 @@ nodes:
       TEST_MSG: ${settings.testMessage}
 
 onInstall:
-  - api: env.vcs.CreateProject
-    nodeGroup: cp
-    type: GIT
-    context: ROOT
-    url: ${settings.gitUrl}
-    branch: ${settings.gitBranch}
-    autoupdate: true
-    interval: "1"
-    autoResolveConflict: true
-
-  - api: env.vcs.Update
-    context: ROOT
+  - deploy:
+      archive: ${settings.gitUrl}/archive/refs/heads/${settings.gitBranch}.zip
+      name: jelastic-golang-hello
+      context: ROOT
 
   - restartNodes:
       nodeGroup: cp
 
+  - script: |
+      return jelastic.env.trigger.AddTrigger({
+        envName: "${env.envName}",
+        session: session,
+        name: "auto-deploy",
+        nodeGroup: "cp",
+        period: 1,
+        data: {
+          action: "deployFromGit"
+        }
+      });
+
 actions:
   deployFromGit:
     - deploy:
-        nodeGroup: cp
-        skipExtraction: false
+        archive: ${settings.gitUrl}/archive/refs/heads/${settings.gitBranch}.zip
+        name: jelastic-golang-hello
+        context: ROOT
     - restartNodes:
         nodeGroup: cp
 
