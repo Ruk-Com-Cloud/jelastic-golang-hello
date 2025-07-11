@@ -44,10 +44,29 @@ nodes:
       TEST_MSG: ${settings.testMessage}
 
 onInstall:
-  - deploy:
-      archive: ${settings.gitUrl}/archive/refs/heads/${settings.gitBranch}.zip
-      name: jelastic-golang-hello
-      context: ROOT
+  - script: |
+      var resp = jelastic.env.vcs.CreateProject({
+        envName: "${env.envName}",
+        session: session,
+        type: "GIT",
+        context: "ROOT",
+        url: "${settings.gitUrl}",
+        branch: "${settings.gitBranch}",
+        keyId: null,
+        login: null,
+        password: null,
+        autoupdate: true,
+        interval: 1,
+        autoResolveConflict: true
+      });
+      return resp;
+
+  - script: |
+      return jelastic.env.vcs.Update({
+        envName: "${env.envName}",
+        session: session,
+        context: "ROOT"
+      });
 
   - restartNodes:
       nodeGroup: cp
@@ -56,10 +75,12 @@ onInstall:
 
 actions:
   deployFromGit:
-    deploy:
-      archive: ${this.gitUrl}/archive/refs/heads/${this.gitBranch}.zip
-      name: jelastic-golang-hello
-      context: ROOT
+    script: |
+      return jelastic.env.vcs.Update({
+        envName: "${env.envName}",
+        session: session,
+        context: "ROOT"
+      });
 
 success:
   text: |
