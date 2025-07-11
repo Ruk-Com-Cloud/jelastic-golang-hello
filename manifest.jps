@@ -44,19 +44,18 @@ nodes:
       TEST_MSG: ${settings.testMessage}
 
 onInstall:
-  - addVcsProject:
-      nodeGroup: cp
-      type: GIT
-      context: ROOT
-      url: ${settings.gitUrl}
-      branch: ${settings.gitBranch}
-      autoupdate: true
-      interval: "1"
-      autoResolveConflict: true
+  - api: env.vcs.CreateProject
+    nodeGroup: cp
+    type: GIT
+    context: ROOT
+    url: ${settings.gitUrl}
+    branch: ${settings.gitBranch}
+    autoupdate: true
+    interval: "1"
+    autoResolveConflict: true
 
-  - deploy:
-      nodeGroup: cp
-      skipExtraction: false
+  - api: env.vcs.Update
+    context: ROOT
 
   - restartNodes:
       nodeGroup: cp
