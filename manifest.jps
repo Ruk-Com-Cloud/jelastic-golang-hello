@@ -6,6 +6,7 @@ version: 1.0.0
 description: A simple Go web application built with Fiber framework for Jelastic cloud deployment
 logo: https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_Blue.png
 homepage: https://github.com/Ruk-Com-Cloud/jelastic-golang-hello
+ssl: true
 
 settings:
   fields:
@@ -37,12 +38,10 @@ nodes:
     cloudlets: 16
     nodeGroup: cp
     displayName: Go Application Server
-    ssl: true
+    isSLBAccessEnabled: true
     env:
       TEST_MSG: ${settings.testMessage}
       PORT: 8080
-    exposedPorts:
-      - 8080
 
 onInstall:
   - deploy:
