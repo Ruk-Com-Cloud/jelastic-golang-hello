@@ -1,60 +1,222 @@
 # Jelastic Golang Hello World
 
-A simple Go web application built with Fiber framework, designed for deployment on Jelastic cloud platform.
+A Go web application built with Fiber framework and hexagonal architecture, featuring a PostgreSQL database and RESTful API. Designed for deployment on Jelastic cloud platform.
 
 ## Features
 
 - HTTP server with Fiber framework
-- JSON API responses
+- Hexagonal architecture (ports and adapters)
+- PostgreSQL database with GORM
+- RESTful API for user management
+- Database seeding system with sample data
 - Environment variable configuration
 - Request logging middleware
-- Query parameter support
+- Docker Compose for local development
+- Makefile for easy development workflow
 
 ## API Endpoints
 
-### GET /
+### Health Check
 
-Returns a JSON message that can be customized via environment variables and query parameters.
+- `GET /` - Returns a JSON health check message
 
-**Response:**
+### User Management
+
+- `POST /users` - Create a new user
+- `GET /users` - Get all users
+- `GET /users/:id` - Get user by ID
+- `PUT /users/:id` - Update user by ID
+- `DELETE /users/:id` - Delete user by ID
+
+**User JSON Structure:**
 
 ```json
 {
-  "message": "Built with Love. Run with Ruk Com."
+  "id": 1,
+  "name": "John Doe",
+  "email": "john@example.com"
 }
 ```
 
 **Environment Variables:**
 
 - `PORT`: Server port (default: 3000)
-- `TEST_MSG`: Additional message to append
-
-**Query Parameters:**
-
-- `message`: Additional text to append to the response
+- `TEST_MSG`: Additional message to append to health check
+- `DB_HOST`: PostgreSQL host (default: localhost)
+- `DB_USER`: Database user (default: postgres)
+- `DB_PASSWORD`: Database password (default: password)
+- `DB_NAME`: Database name (default: testdb)
+- `DB_PORT`: Database port (default: 5432)
+- `DB_SSLMODE`: SSL mode (default: disable)
 
 ## Local Development
 
-1. Install Go 1.19 or later
-2. Clone this repository
-3. Install dependencies:
+### Prerequisites
+
+- Go 1.20 or later
+- Docker and Docker Compose
+
+### Quick Start
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd jelastic-golang-hello
+   ```
+
+2. **Start PostgreSQL with Docker Compose**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Set up environment variables**
+
+   ```bash
+   cp .env.example .env
+   # Edit .env if needed
+   ```
+
+4. **Install dependencies**
 
    ```bash
    go mod tidy
    ```
 
-4. Run the application:
+5. **Run the application**
 
    ```bash
    go run main.go
    ```
 
-5. Test the API:
+6. **Test the API**
 
    ```bash
+   # Health check
    curl http://localhost:3000/
-   curl "http://localhost:3000/?message=hello"
+
+   # Create a user
+   curl -X POST http://localhost:3000/users \
+     -H "Content-Type: application/json" \
+     -d '{"name":"John Doe","email":"john@example.com"}'
+
+   # Get all users
+   curl http://localhost:3000/users
+
+   # Get user by ID
+   curl http://localhost:3000/users/1
+
+   # Update user
+   curl -X PUT http://localhost:3000/users/1 \
+     -H "Content-Type: application/json" \
+     -d '{"name":"Jane Doe","email":"jane@example.com"}'
+
+   # Delete user
+   curl -X DELETE http://localhost:3000/users/1
    ```
+
+### Database Management
+
+**Start PostgreSQL:**
+
+```bash
+docker-compose up -d
+```
+
+**Stop PostgreSQL:**
+
+```bash
+docker-compose down
+```
+
+**View PostgreSQL logs:**
+
+```bash
+docker-compose logs postgres
+```
+
+**Connect to PostgreSQL:**
+
+```bash
+docker exec -it jelastic-postgres psql -U postgres -d testdb
+```
+
+**Reset database (remove volume):**
+
+```bash
+docker-compose down -v
+docker-compose up -d
+```
+
+### Database Seeding
+
+The application includes a comprehensive seeding system to populate the database with sample data.
+
+**Using Make commands (recommended):**
+
+```bash
+# Run all seeders
+make seed
+
+# Run only user seeder
+make seed-users
+
+# Rollback all seeders
+make rollback
+
+# List available seeders
+make list-seeders
+
+# Setup development environment (starts DB + runs seeders)
+make dev-setup
+
+# Reset development environment (resets DB + runs seeders)
+make dev-reset
+```
+
+**Using Go commands directly:**
+
+```bash
+# Run all seeders
+go run cmd/seeder/main.go -action=seed
+
+# Run specific seeder
+go run cmd/seeder/main.go -action=seed -seeder=UserSeeder
+
+# Rollback all seeders
+go run cmd/seeder/main.go -action=rollback
+
+# List available seeders
+go run cmd/seeder/main.go -action=list
+
+# Show help
+go run cmd/seeder/main.go -help
+```
+
+**Using application flags:**
+
+```bash
+# Run application with seeders
+go run main.go -seed
+
+# Run seeders only (don't start server)
+go run main.go -seed-only
+```
+
+**Sample Data:**
+The user seeder creates 10 sample users with realistic names and email addresses:
+
+- John Doe (<john.doe@example.com>)
+- Jane Smith (<jane.smith@example.com>)
+- Bob Johnson (<bob.johnson@example.com>)
+- And 7 more...
+
+**Creating Custom Seeders:**
+
+1. Create a new seeder in `internal/seeder/`
+2. Implement the `Seeder` interface
+3. Register it in `internal/seeder/registry.go`
 
 ## Jelastic Deployment
 

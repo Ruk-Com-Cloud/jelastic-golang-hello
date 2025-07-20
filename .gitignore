@@ -53,3 +53,4 @@ build/
 
 # ignore .claud directory
 .claud/
+.claude/settings.local.json

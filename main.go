@@ -1,64 +1,81 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/spf13/viper"
+	"jelastic-golang-hello/internal/adapters/http"
+	"jelastic-golang-hello/internal/application"
+	"jelastic-golang-hello/internal/config"
+	"jelastic-golang-hello/internal/infrastructure"
+	"jelastic-golang-hello/internal/seeder"
 )
 
 func main() {
-	// Configure Viper
-	viper.SetConfigName(".env")
-	viper.SetConfigType("env")
-	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
+	// Parse command line flags
+	var (
+		runSeeders = flag.Bool("seed", false, "Run database seeders on startup")
+		seedOnly   = flag.Bool("seed-only", false, "Run seeders and exit (don't start server)")
+	)
+	flag.Parse()
 
-	// Set defaults
-	viper.SetDefault("PORT", "3000")
-	viper.SetDefault("TEST_MSG", "")
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
 
-	// Read config file if it exists
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			fmt.Println("No .env file found, using environment variables and defaults")
-		} else {
-			log.Fatalf("Error reading config file: %v", err)
+	// Validate configuration
+	if err := cfg.Validate(); err != nil {
+		log.Fatalf("Invalid configuration: %v", err)
+	}
+
+	// Print configuration
+	cfg.Print()
+
+	// Initialize database
+	db, err := infrastructure.NewDatabaseFromConfig(&cfg.Database)
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+	fmt.Println("Database connected and migrated successfully")
+
+	// Run seeders if requested
+	if *runSeeders || *seedOnly {
+		fmt.Println("Running database seeders...")
+		manager := seeder.SetupSeeders(db)
+		ctx := context.Background()
+		
+		if err := manager.RunAll(ctx); err != nil {
+			log.Fatalf("Failed to run seeders: %v", err)
+		}
+		
+		if *seedOnly {
+			fmt.Println("Seeders completed. Exiting...")
+			os.Exit(0)
 		}
 	}
 
-	// Validate and display configuration
-	port := viper.GetString("PORT")
-	testMsg := viper.GetString("TEST_MSG")
+	// Initialize repositories
+	userRepo := infrastructure.NewPostgresUserRepository(db)
 
-	fmt.Printf("Configuration loaded:\n")
-	fmt.Printf("  PORT: %s\n", port)
-	if testMsg != "" {
-		fmt.Printf("  TEST_MSG: %s\n", testMsg)
-	} else {
-		fmt.Printf("  TEST_MSG: (not set)\n")
-	}
+	// Initialize services
+	userService := application.NewUserService(userRepo)
 
+	// Initialize handlers
+	userHandler := http.NewUserHandler(userService)
+
+	// Initialize Fiber app
 	app := fiber.New()
 
-	app.Use(logger.New(logger.Config{
-		Format: "${time} ${ip} ${method} ${path}?${queryParams} ${status} - ${latency}\n",
-	}))
+	// Setup routes with config
+	http.SetupRoutesWithConfig(app, userHandler, cfg)
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		message := "Built with Love. Run with Ruk Com.: "
-		if testMsg := viper.GetString("TEST_MSG"); testMsg != "" {
-			message = message + " " + testMsg
-		}
-		if queryParam := c.Query("message"); queryParam != "" {
-			message = message + " " + queryParam
-		}
-		return c.JSON(fiber.Map{
-			"message": message,
-		})
-	})
-
-	app.Listen(":" + port)
+	// Start server
+	fmt.Printf("Starting server on %s\n", cfg.Server.GetAddress())
+	app.Listen(":" + cfg.Server.Port)
 }
