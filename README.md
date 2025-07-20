@@ -58,6 +58,18 @@ Returns a JSON message that can be customized via environment variables and quer
 
 ## Jelastic Deployment
 
+### One-Click Deploy
+
+Deploy this application instantly to Jelastic cloud with our JPS manifest:
+
+[![Deploy to Jelastic](https://github.com/Ruk-Com-Cloud/simple-jps/blob/main/deploy-to-ruk-com.png?raw=true)](https://app.manage.ruk-com.cloud/?jps=https://raw.githubusercontent.com/Ruk-Com-Cloud/jelastic-golang-hello/main/manifest.jps)
+
+**Or manually import:**
+
+1. Go to [Jelastic Import](https://app.ruk-com.cloud/import-template)
+2. Use this URL: `https://raw.githubusercontent.com/Ruk-Com-Cloud/jelastic-golang-hello/main/manifest.jps`
+3. Click "Import" and follow the installation wizard
+
 ### Prerequisites
 
 - Jelastic account
