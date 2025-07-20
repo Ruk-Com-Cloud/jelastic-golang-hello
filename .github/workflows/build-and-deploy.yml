@@ -16,9 +16,9 @@ jobs:
       - name: Login to Harbor
         uses: docker/login-action@v3
         with:
-          registry: ${{ vars.HARBOR_REGISTRY }}
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
+          registry: ${{ env.HARBOR_REGISTRY }}
+          username: ${{ env.HARBOR_USERNAME }}
+          password: ${{ env.HARBOR_PASSWORD }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -32,9 +32,9 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,
-          tags: ${{ vars.HARBOR_REGISTRY }}/test/jelastic-golang-hello:latest
-          cache-from: type=registry,ref=${{ vars.HARBOR_REGISTRY }}/test/jelastic-golang-hello:buildcache
-          cache-to: type=registry,ref=${{ vars.HARBOR_REGISTRY }}/test/jelastic-golang-hello:buildcache,mode=max,ignore-error=true,image-manifest=true,oci-mediatypes=true
+          tags: ${{ env.HARBOR_REGISTRY }}/test/jelastic-golang-hello:latest
+          cache-from: type=registry,ref=${{ env.HARBOR_REGISTRY }}/test/jelastic-golang-hello:buildcache
+          cache-to: type=registry,ref=${{ env.HARBOR_REGISTRY }}/test/jelastic-golang-hello:buildcache,mode=max,ignore-error=true,image-manifest=true,oci-mediatypes=true
 
       - name: List docker images
         run: |
