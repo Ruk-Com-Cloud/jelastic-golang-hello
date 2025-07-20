@@ -63,17 +63,17 @@ func Load() (*Config, error) {
 
 func setDefaults() {
 	// Server defaults
-	// viper.SetDefault("server.port", "3000")
+	viper.SetDefault("server.port", "3000")
 	viper.SetDefault("server.host", "0.0.0.0")
 
 	// Database defaults
-	// viper.SetDefault("database.host", "localhost")
-	// viper.SetDefault("database.port", "5432")
-	// viper.SetDefault("database.user", "postgres")
-	// viper.SetDefault("database.password", "password")
-	// viper.SetDefault("database.dbname", "testdb")
-	// viper.SetDefault("database.sslmode", "disable")
-	// viper.SetDefault("database.url", "")
+	viper.SetDefault("database.host", "localhost")
+	viper.SetDefault("database.port", "5432")
+	viper.SetDefault("database.user", "postgres")
+	viper.SetDefault("database.password", "password")
+	viper.SetDefault("database.dbname", "testdb")
+	viper.SetDefault("database.sslmode", "disable")
+	viper.SetDefault("database.url", "")
 
 	// App defaults
 	viper.SetDefault("app.test_message", "")
