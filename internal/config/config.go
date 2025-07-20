@@ -16,7 +16,6 @@ type ServerConfig struct {
 	Host string `mapstructure:"host"`
 }
 
-
 type AppConfig struct {
 	TestMessage string `mapstructure:"test_message"`
 	Environment string `mapstructure:"environment"`
@@ -99,4 +98,3 @@ func (c *Config) Print() {
 		fmt.Printf("    Test Message: (not set)\n")
 	}
 }
-

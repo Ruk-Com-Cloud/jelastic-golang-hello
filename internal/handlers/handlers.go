@@ -51,28 +51,28 @@ func setupAPIRoutes(app *fiber.App) {
 func setupHealthRoute(app *fiber.App, cfg *config.Config) {
 	app.Get("/", func(c *fiber.Ctx) error {
 		message := "Built with Love. Run with Ruk Com."
-		
+
 		// Add test message from config if available
 		if cfg != nil && cfg.App.TestMessage != "" {
 			message = message + " " + cfg.App.TestMessage
 		}
-		
+
 		// Add query parameter if provided
 		if queryParam := c.Query("message"); queryParam != "" {
 			message = message + " " + queryParam
 		}
-		
+
 		response := fiber.Map{
 			"message": message,
 		}
-		
+
 		// Add additional info if config is available
 		if cfg != nil {
 			response["environment"] = cfg.App.Environment
 			response["version"] = "1.0.0"
 			response["mode"] = "http-only"
 		}
-		
+
 		return c.JSON(response)
 	})
 }
