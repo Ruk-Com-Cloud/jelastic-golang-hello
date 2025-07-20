@@ -50,3 +50,6 @@ pids
 # Build output
 dist/
 build/
+
+# ignore .claud directory
+.claud/
