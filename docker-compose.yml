@@ -1,24 +1,29 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: jelastic-postgres
-    environment:
-      POSTGRES_DB: testdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - TEST_MSG=Running in Docker!
+      - ENVIRONMENT=development
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    container_name: jelastic-golang-hello
 
-volumes:
-  postgres_data:
+  # Alternative service using pre-built image (uncomment if needed)
+  # app-image:
+  #   image: jelastic-golang-hello:latest
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - PORT=3000
+  #     - HOST=0.0.0.0
+  #     - TEST_MSG=Running from pre-built image!
+  #     - ENVIRONMENT=production
+  #   restart: unless-stopped
+  #   container_name: jelastic-golang-hello-image

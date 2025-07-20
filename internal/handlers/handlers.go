@@ -1,20 +1,16 @@
-package http
+package handlers
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"jelastic-golang-hello/internal/config"
 )
 
-func SetupRoutes(app *fiber.App, userHandler *UserHandler) {
+func SetupRoutes(app *fiber.App, cfg *config.Config) {
 	setupMiddleware(app)
-	setupAPIRoutes(app, userHandler)
-	setupHealthRoute(app, nil)
-}
-
-func SetupRoutesWithConfig(app *fiber.App, userHandler *UserHandler, cfg *config.Config) {
-	setupMiddleware(app)
-	setupAPIRoutes(app, userHandler)
+	setupAPIRoutes(app)
 	setupHealthRoute(app, cfg)
 }
 
@@ -24,18 +20,37 @@ func setupMiddleware(app *fiber.App) {
 	}))
 }
 
-func setupAPIRoutes(app *fiber.App, userHandler *UserHandler) {
-	// API Routes
-	app.Post("/users", userHandler.CreateUser)
-	app.Get("/users", userHandler.GetUsers)
-	app.Get("/users/:id", userHandler.GetUser)
-	app.Put("/users/:id", userHandler.UpdateUser)
-	app.Delete("/users/:id", userHandler.DeleteUser)
+func setupAPIRoutes(app *fiber.App) {
+	// Simple in-memory data for demonstration
+	app.Get("/api/info", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"service":     "jelastic-golang-hello",
+			"version":     "1.0.0",
+			"timestamp":   time.Now().UTC(),
+			"environment": "http-only",
+		})
+	})
+
+	app.Get("/api/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status":    "healthy",
+			"timestamp": time.Now().UTC(),
+			"uptime":    time.Since(startTime).String(),
+		})
+	})
+
+	app.Get("/api/echo", func(c *fiber.Ctx) error {
+		message := c.Query("message", "Hello World!")
+		return c.JSON(fiber.Map{
+			"echo":      message,
+			"timestamp": time.Now().UTC(),
+		})
+	})
 }
 
 func setupHealthRoute(app *fiber.App, cfg *config.Config) {
 	app.Get("/", func(c *fiber.Ctx) error {
-		message := "Built with Love. Run with Ruk Com.: "
+		message := "Built with Love. Run with Ruk Com."
 		
 		// Add test message from config if available
 		if cfg != nil && cfg.App.TestMessage != "" {
@@ -55,8 +70,11 @@ func setupHealthRoute(app *fiber.App, cfg *config.Config) {
 		if cfg != nil {
 			response["environment"] = cfg.App.Environment
 			response["version"] = "1.0.0"
+			response["mode"] = "http-only"
 		}
 		
 		return c.JSON(response)
 	})
 }
+
+var startTime = time.Now()

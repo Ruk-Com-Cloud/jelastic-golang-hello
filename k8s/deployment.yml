@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jelastic-golang-hello
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jelastic-golang-hello
+  template:
+    metadata:
+      labels:
+        app: jelastic-golang-hello
+    spec:
+      imagePullSecrets:
+        - name: melon-registry-secret
+      containers:
+        - name: jelastic-golang-hello
+          image: registry-chickenlive.th2.melon.cloud/test/jelastic-golang-hello:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          env:
+            - name: PORT
+              value: "3000"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: TEST_MSG
+              value: "Running in Kubernetes!"
+            - name: ENVIRONMENT
+              value: "development"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jelastic-golang-hello
+spec:
+  selector:
+    app: jelastic-golang-hello
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jelastic-golang-hello-terfix
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: melon-test.warut.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jelastic-golang-hello
+                port:
+                  number: 80

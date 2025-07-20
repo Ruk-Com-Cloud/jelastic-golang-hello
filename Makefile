@@ -1,4 +1,4 @@
-.PHONY: help build run seed rollback list-seeders clean test
+.PHONY: help build run clean test tidy fmt vet docker-build docker-run docker-stop docker-clean docker-logs
 
 # Default goal
 .DEFAULT_GOAL := help
@@ -6,6 +6,7 @@
 # Application
 APP_NAME := jelastic-golang-hello
 BUILD_DIR := ./build
+DOCKER_IMAGE := $(APP_NAME):latest
 
 help: ## Show this help message
 	@echo "Available commands:"
@@ -18,7 +19,7 @@ build: ## Build the application
 	@echo "Application built successfully: $(BUILD_DIR)/$(APP_NAME)"
 
 run: ## Run the application
-	@echo "Starting application..."
+	@echo "Starting HTTP-only application..."
 	@go run main.go
 
 test: ## Run tests
@@ -30,52 +31,31 @@ clean: ## Clean build artifacts
 	@rm -rf $(BUILD_DIR)
 	@go clean
 
-# Database commands
-seed: ## Run all database seeders
-	@echo "Running database seeders..."
-	@go run cmd/seeder/main.go -action=seed
-
-seed-users: ## Run only user seeder
-	@echo "Running user seeder..."
-	@go run cmd/seeder/main.go -action=seed -seeder=UserSeeder
-
-rollback: ## Rollback all seeders
-	@echo "Rolling back database seeders..."
-	@go run cmd/seeder/main.go -action=rollback
-
-list-seeders: ## List available seeders
-	@echo "Available seeders:"
-	@go run cmd/seeder/main.go -action=list
-
 # Docker commands
-docker-up: ## Start PostgreSQL with Docker Compose
-	@echo "Starting PostgreSQL..."
-	@docker-compose up -d
+docker-build: ## Build Docker image
+	@echo "Building Docker image..."
+	@docker build -t $(DOCKER_IMAGE) .
+	@echo "Docker image built: $(DOCKER_IMAGE)"
 
-docker-down: ## Stop PostgreSQL
-	@echo "Stopping PostgreSQL..."
+docker-run: ## Run application with Docker Compose
+	@echo "Starting application with Docker Compose..."
+	@docker-compose up -d
+	@echo "Application is running at http://localhost:3000"
+
+docker-stop: ## Stop Docker containers
+	@echo "Stopping Docker containers..."
 	@docker-compose down
 
-docker-logs: ## View PostgreSQL logs
-	@docker-compose logs -f postgres
+docker-logs: ## View Docker logs
+	@docker-compose logs -f
 
-docker-reset: ## Reset PostgreSQL (remove volume)
-	@echo "Resetting PostgreSQL database..."
-	@docker-compose down -v
-	@docker-compose up -d
+docker-clean: ## Clean Docker resources
+	@echo "Cleaning Docker resources..."
+	@docker-compose down --rmi all --volumes --remove-orphans
+	@docker system prune -f
 
-# Development workflow
-dev-setup: docker-up ## Setup development environment
-	@echo "Waiting for database to be ready..."
-	@sleep 5
-	@$(MAKE) seed
-	@echo "Development environment ready!"
-
-dev-reset: docker-reset ## Reset development environment
-	@echo "Waiting for database to be ready..."
-	@sleep 5
-	@$(MAKE) seed
-	@echo "Development environment reset!"
+docker-shell: ## Get shell access to running container
+	@docker exec -it jelastic-golang-hello /bin/sh
 
 # Utility commands
 tidy: ## Tidy go modules

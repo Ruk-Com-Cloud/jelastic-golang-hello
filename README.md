@@ -1,60 +1,64 @@
-# Jelastic Golang Hello World
+# Jelastic Golang Hello World (HTTP-Only)
 
-A Go web application built with Fiber framework and hexagonal architecture, featuring a PostgreSQL database and RESTful API. Designed for deployment on Jelastic cloud platform.
+A simple Go web application built with Fiber framework for standalone HTTP-only deployment. This version has been simplified to run without any database or Redis dependencies.
 
 ## Features
 
-- HTTP server with Fiber framework
-- Hexagonal architecture (ports and adapters)
-- PostgreSQL database with GORM
-- RESTful API for user management
-- Database seeding system with sample data
-- Environment variable configuration
+- Lightweight HTTP server with Fiber framework
+- Simple configuration management with Viper
+- Environment variable support
 - Request logging middleware
-- Docker Compose for local development
-- Makefile for easy development workflow
+- RESTful API endpoints
+- Designed for Jelastic cloud platform deployment
 
 ## API Endpoints
 
 ### Health Check
 
-- `GET /` - Returns a JSON health check message
+- `GET /` - Returns a JSON health check message with optional query parameters
+- `GET /api/info` - Returns service information
+- `GET /api/health` - Returns health status with uptime
+- `GET /api/echo` - Echo service with message parameter
 
-### User Management
+**Example Responses:**
 
-- `POST /users` - Create a new user
-- `GET /users` - Get all users
-- `GET /users/:id` - Get user by ID
-- `PUT /users/:id` - Update user by ID
-- `DELETE /users/:id` - Delete user by ID
-
-**User JSON Structure:**
+Health check:
 
 ```json
 {
-  "id": 1,
-  "name": "John Doe",
-  "email": "john@example.com"
+  "message": "Built with Love. Run with Ruk Com.",
+  "environment": "development",
+  "version": "1.0.0",
+  "mode": "http-only"
 }
 ```
+
+Service info:
+
+```json
+{
+  "service": "jelastic-golang-hello",
+  "version": "1.0.0",
+  "timestamp": "2025-07-20T10:30:00Z",
+  "environment": "http-only"
+}
+```
+
+## Configuration
 
 **Environment Variables:**
 
 - `PORT`: Server port (default: 3000)
+- `HOST`: Server host (default: 0.0.0.0)
 - `TEST_MSG`: Additional message to append to health check
-- `DB_HOST`: PostgreSQL host (default: localhost)
-- `DB_USER`: Database user (default: postgres)
-- `DB_PASSWORD`: Database password (default: password)
-- `DB_NAME`: Database name (default: testdb)
-- `DB_PORT`: Database port (default: 5432)
-- `DB_SSLMODE`: SSL mode (default: disable)
+- `ENVIRONMENT`: Environment name (default: development)
 
 ## Local Development
 
 ### Prerequisites
 
 - Go 1.20 or later
-- Docker and Docker Compose
+- Docker and Docker Compose (for containerized deployment)
 
 ### Quick Start
 
@@ -65,158 +69,126 @@ A Go web application built with Fiber framework and hexagonal architecture, feat
    cd jelastic-golang-hello
    ```
 
-2. **Start PostgreSQL with Docker Compose**
-
-   ```bash
-   docker-compose up -d
-   ```
-
-3. **Set up environment variables**
-
-   ```bash
-   cp .env.example .env
-   # Edit .env if needed
-   ```
-
-4. **Install dependencies**
+2. **Install dependencies**
 
    ```bash
    go mod tidy
    ```
 
-5. **Run the application**
+3. **Run the application**
 
    ```bash
+   make run
+   # or
    go run main.go
    ```
 
-6. **Test the API**
+4. **Test the API**
 
    ```bash
    # Health check
    curl http://localhost:3000/
 
-   # Create a user
-   curl -X POST http://localhost:3000/users \
-     -H "Content-Type: application/json" \
-     -d '{"name":"John Doe","email":"john@example.com"}'
+   # Service info
+   curl http://localhost:3000/api/info
 
-   # Get all users
-   curl http://localhost:3000/users
+   # Health status
+   curl http://localhost:3000/api/health
 
-   # Get user by ID
-   curl http://localhost:3000/users/1
-
-   # Update user
-   curl -X PUT http://localhost:3000/users/1 \
-     -H "Content-Type: application/json" \
-     -d '{"name":"Jane Doe","email":"jane@example.com"}'
-
-   # Delete user
-   curl -X DELETE http://localhost:3000/users/1
+   # Echo service
+   curl "http://localhost:3000/api/echo?message=Hello%20World"
    ```
 
-### Database Management
+### Development Commands
 
-**Start PostgreSQL:**
-
-```bash
-docker-compose up -d
-```
-
-**Stop PostgreSQL:**
+**Build and Run:**
 
 ```bash
-docker-compose down
+make build    # Build the application
+make run      # Run the application
+make clean    # Clean build artifacts
 ```
 
-**View PostgreSQL logs:**
+**Code Quality:**
 
 ```bash
-docker-compose logs postgres
+make test     # Run tests
+make fmt      # Format code
+make vet      # Vet code
+make tidy     # Tidy modules
 ```
 
-**Connect to PostgreSQL:**
-
+**Docker Commands:**
 ```bash
-docker exec -it jelastic-postgres psql -U postgres -d testdb
+make docker-build  # Build Docker image
+make docker-run    # Run with Docker Compose
+make docker-stop   # Stop Docker containers
+make docker-logs   # View container logs
+make docker-clean  # Clean Docker resources
+make docker-shell  # Access container shell
 ```
 
-**Reset database (remove volume):**
+## Docker Deployment
 
-```bash
-docker-compose down -v
-docker-compose up -d
-```
+### Using Docker Compose (Recommended)
 
-### Database Seeding
+1. **Build and run with Docker Compose**
+   ```bash
+   make docker-run
+   # or
+   docker-compose up -d
+   ```
 
-The application includes a comprehensive seeding system to populate the database with sample data.
+2. **View logs**
+   ```bash
+   make docker-logs
+   # or
+   docker-compose logs -f
+   ```
 
-**Using Make commands (recommended):**
+3. **Stop the application**
+   ```bash
+   make docker-stop
+   # or
+   docker-compose down
+   ```
 
-```bash
-# Run all seeders
-make seed
+### Using Docker directly
 
-# Run only user seeder
-make seed-users
+1. **Build the Docker image**
+   ```bash
+   make docker-build
+   # or
+   docker build -t jelastic-golang-hello:latest .
+   ```
 
-# Rollback all seeders
-make rollback
+2. **Run the container**
+   ```bash
+   docker run -d \
+     --name jelastic-golang-hello \
+     -p 3000:3000 \
+     -e TEST_MSG="Running in Docker!" \
+     jelastic-golang-hello:latest
+   ```
 
-# List available seeders
-make list-seeders
+3. **View logs**
+   ```bash
+   docker logs -f jelastic-golang-hello
+   ```
 
-# Setup development environment (starts DB + runs seeders)
-make dev-setup
+4. **Stop and remove**
+   ```bash
+   docker stop jelastic-golang-hello
+   docker rm jelastic-golang-hello
+   ```
 
-# Reset development environment (resets DB + runs seeders)
-make dev-reset
-```
+### Docker Environment Variables
 
-**Using Go commands directly:**
-
-```bash
-# Run all seeders
-go run cmd/seeder/main.go -action=seed
-
-# Run specific seeder
-go run cmd/seeder/main.go -action=seed -seeder=UserSeeder
-
-# Rollback all seeders
-go run cmd/seeder/main.go -action=rollback
-
-# List available seeders
-go run cmd/seeder/main.go -action=list
-
-# Show help
-go run cmd/seeder/main.go -help
-```
-
-**Using application flags:**
-
-```bash
-# Run application with seeders
-go run main.go -seed
-
-# Run seeders only (don't start server)
-go run main.go -seed-only
-```
-
-**Sample Data:**
-The user seeder creates 10 sample users with realistic names and email addresses:
-
-- John Doe (<john.doe@example.com>)
-- Jane Smith (<jane.smith@example.com>)
-- Bob Johnson (<bob.johnson@example.com>)
-- And 7 more...
-
-**Creating Custom Seeders:**
-
-1. Create a new seeder in `internal/seeder/`
-2. Implement the `Seeder` interface
-3. Register it in `internal/seeder/registry.go`
+The Docker setup supports all the same environment variables:
+- `PORT=3000` - Container port
+- `HOST=0.0.0.0` - Bind address
+- `TEST_MSG` - Custom message
+- `ENVIRONMENT` - Environment name
 
 ## Jelastic Deployment
 
@@ -224,54 +196,13 @@ The user seeder creates 10 sample users with realistic names and email addresses
 
 Deploy this application instantly to Jelastic cloud with our JPS manifest:
 
-[![Deploy to Jelastic](https://github.com/Ruk-Com-Cloud/simple-jps/blob/main/deploy-to-ruk-com.png?raw=true)](https://app.manage.ruk-com.cloud/?jps=https://raw.githubusercontent.com/Ruk-Com-Cloud/jelastic-golang-hello/main/manifest.jps)
+[![Deploy to Jelastic](https://github.com/Ruk-Com-Cloud/simple-jps/blob/main/deploy-to-ruk-com.png?raw=true)](https://app.manage.ruk-com.cloud/?jps=https://raw.githubusercontent.com/Ruk-Com-Cloud/jelastic-golang-hello/http-only/manifest.jps)
 
 **Or manually import:**
 
 1. Go to [Jelastic Import](https://app.ruk-com.cloud/import-template)
-2. Use this URL: `https://raw.githubusercontent.com/Ruk-Com-Cloud/jelastic-golang-hello/main/manifest.jps`
+2. Use this URL: `https://raw.githubusercontent.com/Ruk-Com-Cloud/jelastic-golang-hello/http-only/manifest.jps`
 3. Click "Import" and follow the installation wizard
-
-### Prerequisites
-
-- Jelastic account
-- Access to Jelastic dashboard
-
-### Deployment Steps
-
-1. **Create New Environment**
-   - Log into your Jelastic dashboard
-   - Click "New Environment"
-   - Select "Go" as the programming language
-   - Choose Go version 1.19 or later
-   - Set environment name (e.g., "golang-hello")
-   - Configure topology as needed
-   - Click "Create"
-
-2. **Deploy Application**
-   - Option A: Git deployment (recommended)
-     - In Jelastic dashboard, go to your environment
-     - Click "Deployment Manager"
-     - Add your Git repository URL
-     - Click "Deploy to..."
-     - Select your Go application server
-
-   - Option B: Archive upload
-     - Create a ZIP archive of your project
-     - Upload via Jelastic deployment manager
-     - Deploy to your Go server
-
-3. **Configure Environment Variables** (Optional)
-   - Go to environment Settings
-   - Add environment variables:
-     - `PORT`: Will be automatically set by Jelastic
-     - `TEST_MSG`: Your custom message
-
-4. **Access Your Application**
-   - Once deployed, Jelastic will provide a URL
-   - Test your endpoints:
-     - `https://your-env-name.app.ruk-com.cloud/`
-     - `https://your-env-name.app.ruk-com.cloud/?message=test`
 
 ### Build Configuration
 
@@ -281,7 +212,7 @@ The application uses standard Go build process:
 go build -o main .
 ```
 
-For Jelastic deployment, ensure your `go.mod` file is properly configured with Go 1.19+ and all dependencies are listed.
+For Jelastic deployment, ensure your `go.mod` file is properly configured with Go 1.20+ and all dependencies are listed.
 
 ### Environment-Specific Notes
 
@@ -289,6 +220,21 @@ For Jelastic deployment, ensure your `go.mod` file is properly configured with G
 - The application listens on all interfaces (0.0.0.0)
 - Logs are automatically collected by Jelastic monitoring
 - SSL certificates are managed by Jelastic platform
+- No database or external dependencies required
+
+## Architecture
+
+This is a simplified HTTP-only application with the following structure:
+
+```text
+internal/
+├── config/     # Configuration management
+└── handlers/   # HTTP handlers and routing
+```
+
+- **Web Framework**: Fiber v2 (Express-like framework for Go)
+- **Configuration**: Viper for environment/config management
+- **Architecture**: Simple HTTP service without external dependencies
 
 ## License
 
