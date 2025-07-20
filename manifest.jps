@@ -37,6 +37,7 @@ nodes:
     cloudlets: 16
     nodeGroup: cp
     displayName: Go Application Server
+    ssl: true
     env:
       TEST_MSG: ${settings.testMessage}
       PORT: 8080
