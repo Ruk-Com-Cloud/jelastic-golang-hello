@@ -39,13 +39,14 @@ nodes:
     displayName: Go Application Server
     env:
       TEST_MSG: ${settings.testMessage}
-      PORT: 80
+      PORT: 8080
     exposedPorts:
-      - 80
+      - 8080
 
 onInstall:
   - deploy:
       archive: ${settings.gitUrl}/archive/refs/heads/${settings.gitBranch}.zip
+      type: archive
       name: ROOT
       context: ROOT
   - restartNodes:
