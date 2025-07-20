@@ -44,41 +44,30 @@ nodes:
       TEST_MSG: ${settings.testMessage}
 
 onInstall:
-  - script: |
-      var resp = jelastic.env.vcs.CreateProject({
-        envName: "${env.envName}",
-        session: session,
-        type: "GIT",
-        context: "ROOT",
-        url: "${settings.gitUrl}",
-        branch: "${settings.gitBranch}",
-        keyId: null,
-        login: null,
-        password: null,
-        autoupdate: true,
-        interval: 1,
-        autoResolveConflict: true
-      });
-      return resp;
+  - addVcsProject:
+      nodeGroup: cp
+      type: GIT
+      context: ROOT
+      url: ${settings.gitUrl}
+      branch: ${settings.gitBranch}
+      autoupdate: true
+      interval: "1"
+      autoResolveConflict: true
 
-  - script: |
-      return jelastic.env.vcs.Update({
-        envName: "${env.envName}",
-        session: session,
-        context: "ROOT"
-      });
+  - deploy:
+      nodeGroup: cp
+      skipExtraction: false
 
   - restartNodes:
       nodeGroup: cp
 
 actions:
   deployFromGit:
-    script: |
-      return jelastic.env.vcs.Update({
-        envName: "${env.envName}",
-        session: session,
-        context: "ROOT"
-      });
+    - deploy:
+        nodeGroup: cp
+        skipExtraction: false
+    - restartNodes:
+        nodeGroup: cp
 
 success:
   text: |
