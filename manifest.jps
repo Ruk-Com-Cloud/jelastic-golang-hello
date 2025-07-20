@@ -7,15 +7,12 @@ description: A simple Go web application built with Fiber framework for Jelastic
 logo: https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_Blue.png
 homepage: https://github.com/Ruk-Com-Cloud/jelastic-golang-hello
 
-globals:
-  REPO_URL: https://github.com/Ruk-Com-Cloud/jelastic-golang-hello
-
 settings:
   fields:
     - type: string
       name: gitUrl
       caption: Git Repository URL
-      default: ${globals.REPO_URL}
+      default: https://github.com/Ruk-Com-Cloud/jelastic-golang-hello
       required: true
       tooltip: URL of the Git repository containing your Go application
 
@@ -42,36 +39,17 @@ nodes:
     displayName: Go Application Server
     env:
       TEST_MSG: ${settings.testMessage}
+      PORT: 80
+    exposedPorts:
+      - 80
 
 onInstall:
   - deploy:
       archive: ${settings.gitUrl}/archive/refs/heads/${settings.gitBranch}.zip
-      name: jelastic-golang-hello
+      name: ROOT
       context: ROOT
-
   - restartNodes:
       nodeGroup: cp
-
-  - script: |
-      return jelastic.env.trigger.AddTrigger({
-        envName: "${env.envName}",
-        session: session,
-        name: "auto-deploy",
-        nodeGroup: "cp",
-        period: 1,
-        data: {
-          action: "deployFromGit"
-        }
-      });
-
-actions:
-  deployFromGit:
-    - deploy:
-        archive: ${settings.gitUrl}/archive/refs/heads/${settings.gitBranch}.zip
-        name: jelastic-golang-hello
-        context: ROOT
-    - restartNodes:
-        nodeGroup: cp
 
 success:
   text: |
