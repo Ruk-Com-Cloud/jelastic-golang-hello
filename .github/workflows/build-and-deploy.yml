@@ -44,16 +44,16 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t ${{ vars.HARBOR_REGISTRY}}/test/jelastic-golang-hello:latest .
+            -t ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest .
 
       - name: Push Docker Image
         run: |
-          docker push ${{ vars.HARBOR_REGISTRY}}/test/jelastic-golang-hello:latest
+          docker push ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest
 
       - name: Verify pushed image
         run: |
           echo "Verifying image was pushed successfully..."
-          docker manifest inspect ${{ vars.HARBOR_REGISTRY }}/test/jelastic-golang-hello:latest || echo "Failed to inspect manifest"
+          docker manifest inspect ${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest || echo "Failed to inspect manifest"
 
       - name: List docker images
         run: |

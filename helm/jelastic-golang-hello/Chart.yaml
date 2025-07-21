@@ -1,0 +1,43 @@
+apiVersion: v2
+name: jelastic-golang-hello
+description: A simple HTTP-only Go web application built with Fiber framework
+
+# Chart version - increment on changes to the chart itself
+version: 0.1.0
+
+# Application version - the version of the app being deployed
+appVersion: "1.0.0"
+
+# Chart type
+type: application
+
+# Keywords for easier discovery
+keywords:
+  - golang
+  - http
+  - web
+  - api
+  - fiber
+
+# Maintainers
+maintainers:
+  - name: Jelastic Team
+    email: support@jelastic.com
+
+# Source code repository
+sources:
+  - https://github.com/Ruk-Com-Cloud/jelastic-golang-hello
+
+# Home page
+home: https://github.com/Ruk-Com-Cloud/jelastic-golang-hello
+
+# Minimum Kubernetes version
+kubeVersion: ">=1.19.0"
+
+# Chart dependencies (none for this simple app)
+dependencies: []
+
+# Annotations
+annotations:
+  category: Application
+  licenses: MIT
