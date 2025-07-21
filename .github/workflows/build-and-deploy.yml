@@ -41,14 +41,22 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          file: Dockerfile
-          tags: ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest
-          platforms: linux/amd64
+      - name: Build Docker image with cache
+        run: |
+          # Pull cache image if it exists
+          docker pull ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:cache || true
+          
+          # Build with cache from previous image
+          docker build \
+            --cache-from ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:cache \
+            -t ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest \
+            -t ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:cache \
+            .
+          
+      - name: Push Docker images
+        run: |
+          docker push ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest
+          docker push ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:cache
 
       - name: List docker images
         run: |
