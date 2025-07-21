@@ -2,7 +2,7 @@ name: GitHub Action Runner Build
 
 on:
   push:
-    branches: [ main, http-only ]
+    branches: [ main, http-only, test-github-actions ]
 permissions:
   contents: write
 
@@ -27,25 +27,14 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image with cache
-        env:
-          IMAGE_NAME: ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/${{ github.event.repository.name }}
-        run: |
-          # Pull cache image if it exists
-          docker pull $IMAGE_NAME:cache || true
-
-          # Build with cache from previous image
-          docker build \
-          --cache-from $IMAGE_NAME:cache \
-          -t $IMAGE_NAME:latest \
-          -t $IMAGE_NAME:cache \
-          .
-
-      - name: Push Docker images
-        env:
-          IMAGE_NAME: ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/${{ github.event.repository.name }}
-        run: |
-          docker push $IMAGE_NAME:latest
-          docker push $IMAGE_NAME:cache
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          file: Dockerfile
+          tags: ${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest
+          platforms: linux/amd64
+          cache-from: type=registry,ref=${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:buildcache
+          cache-to: type=registry,ref=${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:buildcache,mode=max
 
       - name: List docker images
         run: |
