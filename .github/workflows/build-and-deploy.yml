@@ -44,6 +44,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          context: .
           push: true
           file: Dockerfile
           tags: ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest
