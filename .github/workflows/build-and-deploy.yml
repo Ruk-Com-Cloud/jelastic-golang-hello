@@ -41,19 +41,15 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build Docker Image
-        run: |
-          docker build \
-            -t ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest .
-
-      - name: Push Docker Image
-        run: |
-          docker push ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest
-
-      - name: Verify pushed image
-        run: |
-          echo "Verifying image was pushed successfully..."
-          docker manifest inspect ${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest || echo "Failed to inspect manifest"
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          file: docker/github-runner-image/Dockerfile
+          tags: ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest
+          platforms: linux/amd64
+          cache-from: type=registry,ref=${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:buildcache
+          cache-to: type=registry,ref=${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:buildcache,mode=max,ignore-error=true,image-manifest=true,oci-mediatypes=true
 
       - name: List docker images
         run: |
