@@ -28,13 +28,16 @@ jobs:
 
       - name: Build Docker image with cache
         uses: docker/build-push-action@v6
+        env:
+          IMAGE_NAME: ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/${{ github.event.repository.name }}
+
         with:
           push: true
           file: Dockerfile
-          tags: ${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:latest
+          tags: $IMAGE_NAME:latest
           platforms: linux/amd64
-          cache-from: type=registry,ref=${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:buildcache
-          cache-to: type=registry,ref=${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/jelastic-golang-hello:buildcache,mode=max
+          cache-from: type=registry,ref=$IMAGE_NAME:buildcache
+          cache-to: type=registry,ref=$IMAGE_NAME:buildcache,mode=max
 
       - name: List docker images
         run: |
