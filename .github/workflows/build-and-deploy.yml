@@ -28,16 +28,13 @@ jobs:
 
       - name: Build Docker image with cache
         uses: docker/build-push-action@v6
-        env:
-          IMAGE_NAME: ${{ vars.HARBOR_REGISTRY}}/${{ vars.HARBOR_PROJECT }}/${{ github.event.repository.name }}
-
         with:
           push: true
           file: Dockerfile
-          tags: $IMAGE_NAME:latest
+          tags: ${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/${{ github.event.repository.name }}:latest
           platforms: linux/amd64
-          cache-from: type=registry,ref=$IMAGE_NAME:buildcache
-          cache-to: type=registry,ref=$IMAGE_NAME:buildcache,mode=max
+          cache-from: type=registry,ref=${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/${{ github.event.repository.name }}:buildcache
+          cache-to: type=registry,ref=${{ vars.HARBOR_REGISTRY }}/${{ vars.HARBOR_PROJECT }}/${{ github.event.repository.name }}:buildcache,mode=max
 
       - name: List docker images
         run: |
